@@ -25,7 +25,7 @@ async def login_user(credentails: HTTPBasicCredentials = Depends(security)):
 
     response = Response(status_code=200)
     response.set_cookie(key="session_token", value=session_token, max_age=3600, httponly=True, secure=False, samesite="lax")
-    return {"message": "ok", "session_token_for_testing": session_token}
+    return response
 
 async def find_user(session_token: str | None = Cookie(default=None)):
     if not session_token or session_token not in sessions:
@@ -40,3 +40,4 @@ def log_in_session(response: Response = Depends(login_user)):
 def get_to_user(user: str = Depends(find_user)):
     return {"username": user, "message": "защищенная страница"}
     
+# Проверка через запуск: python -m uvicorn main:app --reload и python test_api_httpx.py в отдельных терминалах 
