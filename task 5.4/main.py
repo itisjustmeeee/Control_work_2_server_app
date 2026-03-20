@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends, Response
 import re
 
 app = FastAPI()
 
-def validate_language(accept_language: str | None = Header(None, convert_underscores=False)):
-    if not accept_language:
+def validate_language(accept_language: str | None = Header(None)):
+    if accept_language is None:
         raise HTTPException(status_code=400, detail="Accepted-languge header is requred")
     
     pattern = r"^([a-zA-Z]{2,3}(-[a-zA-Z0-9]+)?)(,[a-zA-Z]{2,3}(-[a-zA-Z0-9]+)?(;q=[0-9.]+)?)*$"
@@ -15,11 +15,12 @@ def validate_language(accept_language: str | None = Header(None, convert_undersc
     return accept_language
 
 @app.get('/headers')
-async def get_browser_and_language(user_agent: str | None = Header(None, convert_underscores=False), accept_language: str = Depends(validate_language)):
-    if not user_agent or not accept_language:
+async def get_browser_and_language(response: Response, user_agent: str | None = Header(None), accept_language: str = Depends(validate_language)):
+    response.headers["Cache-Control"] = "no-store"
+    if user_agent is None or accept_language is None:
         raise HTTPException(status_code=400, detail="Missing required header")
-    else:
-        return {
+        
+    return {
         "User-agent": user_agent,
         "Accept-language": accept_language
     }
